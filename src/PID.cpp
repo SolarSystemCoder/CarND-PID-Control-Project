@@ -39,7 +39,7 @@ double PID::TotalError() {
   /**
    * TODO: Calculate and return the total error
    */
-  return -Kp[0] * p_error - Kp[1] * d_error - Kp[2] * i_error;  // TODO: Add your total error calc here!
+  return -Kp[0] * p_error - Kp[2] * d_error - Kp[1] * i_error;  // TODO: Add your total error calc here!
 }
 
 bool PID::enableTwiddle() {

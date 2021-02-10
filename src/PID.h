@@ -37,7 +37,7 @@ class PID {
 
   double getParameter(int i);
 
- private:
+ //private:
   /**
    * PID Errors
    */
@@ -48,9 +48,9 @@ class PID {
   /**
    * PID Coefficients
    */ 
-  double Kp[3] = {0.10, 0.10, 0.10};
+  double Kp[3] = {0, 0, 0.10};
 
-  double Kd[3] = {0, 0, 0.0001};
+  double Kd[3] = {0.0001, 0.0001, 0.0001};
 
   double Kl[3];
 

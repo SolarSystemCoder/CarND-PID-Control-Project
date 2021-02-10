@@ -30,6 +30,36 @@ string hasData(string s) {
   return "";
 }
 
+void changemode(int);
+int kbhit(void);
+void changemode(int dir)
+{
+  static struct termios oldt, newt;
+  if ( dir == 1 ){
+    tcgetattr( STDIN_FILENO, &oldt);
+    newt = oldt;
+    newt.c_lflag &= ~( ICANON | ECHO );
+    tcsetattr( STDIN_FILENO, TCSANOW, &newt);
+  }
+  else
+    tcsetattr( STDIN_FILENO, TCSANOW, &oldt);
+}
+
+int kbhit (void)
+{
+  struct timeval tv;
+  fd_set rdfs;
+  tv.tv_sec = 0;
+  tv.tv_usec = 0;
+  FD_ZERO(&rdfs);
+  FD_SET (STDIN_FILENO, &rdfs);
+  select(STDIN_FILENO+1, &rdfs, NULL, NULL, &tv);
+  return FD_ISSET(STDIN_FILENO, &rdfs);
+
+}
+
+
+
 int main() {
   uWS::Hub h;
 
@@ -40,8 +70,10 @@ int main() {
   //pid.Init(0, 0.0000143423, 0);
   //pid.Init(0.0233613, 0.000553171, 0.0000143423);
   //pid.Init(0.0235769, 0.000553171, 0.0000143423);
-  pid.Init(0.0235769, 0.000553171, 0.0000143423);
+  //pid.Init(0.0235769, 0.000553171, 0.0000143423);
+  //pid.Init(0.02994, 0, 6.55727);
   pid_throttle.Init(0.003, 0.0, 0.00002);
+  pid.Init(0.02994, 0.000529, 7.9343);
   h.onMessage([&pid, &pid_throttle](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length, 
                      uWS::OpCode opCode) {
     // "42" at the start of the message means there's a websocket message event.
@@ -78,9 +110,10 @@ int main() {
           //std::cout << "Kp: " << pid.getKp() << std::endl;
 	        //std::cout << "Ki: " << pid.getKi() << std::endl;
 	        //std::cout << "Kd: " << pid.getKd() << std::endl;
+	  std::cout << "Kp: " << pid.Kp[0] << " Ki: " << pid.Kp[1] << " Kd: " << pid.Kp[2] << std::endl;
           if (pid.enableTwiddle()) {
-            if (steps > 3500) {
-              pid.Twiddle(error/3500, 2);
+            if (steps > 7000) {
+              pid.Twiddle(error/7000, 1);
               std::string reset_msg = "42[\"reset\",{}]";
               ws.send(reset_msg.data(), reset_msg.length(), uWS::OpCode::TEXT);
               steps = 0;
@@ -93,9 +126,8 @@ int main() {
           }
           
           // DEBUG
-          std::cout << "CTE: " << cte << " Steering Value: " << steer_value 
-                    << std::endl;
-
+	  std::cout << "CTE: " << cte << " Steering Value: " << steer_value << " Kp: " << pid.Kp[0] << " Ki: " << pid.Kp[1] << " Kd: " << pid.Kp[2] 
+		                      << std::endl;
           json msgJson;
           msgJson["steering_angle"] = steer_value;
           msgJson["throttle"] = throttle_value * 0.7;
@@ -109,6 +141,39 @@ int main() {
         ws.send(msg.data(), msg.length(), uWS::OpCode::TEXT);
       }
     }  // end websocket message if
+    char ch; 
+    changemode(1);
+    if ( kbhit() ){
+      ch = getchar();
+      printf("%c\tFrom: P: %2.2f\tI: %f\tD:%2.2f", ch, pid.Kp[0] , pid.Kp[1], pid.Kp[2]);
+      switch (ch){
+        case 'T':
+	  pid.twiddle = true; 
+	  break;
+	case 't':
+	  pid.twiddle = false;
+	  break;
+	case 'P':
+	  pid.Kp[0] += pid.Kp[0]*0.1; // Or += 0.01; 
+	  break;
+	case 'p':
+	  pid.Kp[0] -= pid.Kp[0]*0.1; // Or -= 0.01;
+	  break;
+	case 'I':
+	  pid.Kp[1] += pid.Kp[1]*0.1; // Or += 0.001; 
+	  break;
+	case 'i':
+	  pid.Kp[1] -= pid.Kp[1]*0.1; // Or -= 0.001; 
+	  break;
+	case 'D':
+	  pid.Kp[2] += pid.Kp[2]*0.1; // Or += 0.1; 
+	  break;
+	case 'd':
+	  pid.Kp[2] -= pid.Kp[2]*0.1; // Or -=0.1;
+	  break;
+      }
+      printf("\tto: P: %2.2f\tI: %f\tD:%2.2f\n", pid.Kp[0] , pid.Kp[1], pid.Kp[2]);
+    }
   }); // end h.onMessage
 
   h.onConnection([&h](uWS::WebSocket<uWS::SERVER> ws, uWS::HttpRequest req) {

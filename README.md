@@ -3,7 +3,7 @@ Self-Driving Car Engineer Nanodegree Program
 
 ---
 
-# Implementation details
+## Implementation details
 
   * Like the lecture, get the error in 500 updates, and adjust twittle
   * Tune each parameter separately: P first, D second, I third
@@ -12,6 +12,11 @@ Self-Driving Car Engineer Nanodegree Program
   * Get the best parameters in each one separately
   * Disable twittle and run full race with the best parameters
   * Further fine tune
+
+## PID parameters
+  * P is Proportional component. This makes the car to steer propotional and opposite from the road center to the car location. It causes the car to come back to the center. When this value is big, the car went out of the track easily.
+  * I is Integral component, and it is bias which keeps the car away from the center. In this simulation project, very small value is good for the project.
+  * D is Differential component. This prevents the car to overshoot the center line. The big value is used, and otherwise, the car went out of the track easily by overshooting the center.
 
 
 ## Dependencies
