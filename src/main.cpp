@@ -73,7 +73,8 @@ int main() {
   //pid.Init(0.0235769, 0.000553171, 0.0000143423);
   //pid.Init(0.02994, 0, 6.55727);
   pid_throttle.Init(0.003, 0.0, 0.00002);
-  pid.Init(0.02994, 0.000529, 7.9343);
+  //pid.Init(0.10479, 0.000529, 7.9343);
+  pid.Init(0.08982, 0.000529, 4.68512);
   h.onMessage([&pid, &pid_throttle](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length, 
                      uWS::OpCode opCode) {
     // "42" at the start of the message means there's a websocket message event.
@@ -113,7 +114,7 @@ int main() {
 	  std::cout << "Kp: " << pid.Kp[0] << " Ki: " << pid.Kp[1] << " Kd: " << pid.Kp[2] << std::endl;
           if (pid.enableTwiddle()) {
             if (steps > 7000) {
-              pid.Twiddle(error/7000, 1);
+              pid.Twiddle(error/7000, 2);
               std::string reset_msg = "42[\"reset\",{}]";
               ws.send(reset_msg.data(), reset_msg.length(), uWS::OpCode::TEXT);
               steps = 0;
